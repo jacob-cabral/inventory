@@ -13,7 +13,7 @@ public class Inventory {
     records = new HashSet<>();
   }
 
-  public Set<Record> getRegistros() {
+  public Set<Record> getRecords() {
     return Collections.unmodifiableSet(records);
   }
 
