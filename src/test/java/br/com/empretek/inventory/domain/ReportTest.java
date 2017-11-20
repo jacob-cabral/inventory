@@ -7,6 +7,8 @@ import org.junit.Test;
 
 import com.lowagie.text.DocumentException;
 
+import br.com.empretek.inventory.domain.report.Report;
+
 public class ReportTest {
 
   @Test
