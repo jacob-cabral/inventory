@@ -1,27 +1,19 @@
 package br.com.empretek.inventory.application;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Scanner;
 import java.util.regex.Pattern;
-
-import br.com.empretek.inventory.infrastructure.FileUtil;
 
 public class InventoryApplication {
 
   public static void main(String[] args) {
-    SourceController controller = new SourceController();
+    SourceController sourceController = new SourceController();
     boolean hasMoreSources = true;
     Scanner scanner = new Scanner(System.in);
 
     while (hasMoreSources) {
-      System.out.print("Informe o nome do arquivo: ");
-      String filename = scanner.nextLine();
-      
       try {
-        File source = FileUtil.getInstance().getFile(filename);
-        controller.add(source);
-      } catch (RuntimeException | IOException e) {
+        sourceController.addSource();
+      } catch (RuntimeException e) {
         System.out.println(e.getMessage());
       }
       
@@ -30,7 +22,7 @@ public class InventoryApplication {
       hasMoreSources = Pattern.matches("^(\\s)*([sS][iI][mM])(\\s)*$", yesOrNo);
     }
 
-    System.out.println(controller.getSources());
+    System.out.println(sourceController.getSources());
     scanner.close();
   }
 
