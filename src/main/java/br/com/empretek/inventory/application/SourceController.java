@@ -9,7 +9,7 @@ import java.util.Set;
 
 import br.com.empretek.inventory.infrastructure.FileUtil;
 
-public class SourceController {
+public class SourceController extends GenericController {
 
   private Set<File> sources;
 
@@ -19,11 +19,10 @@ public class SourceController {
   }
 
   public void addSource() throws IllegalArgumentException, RuntimeException {
+    final boolean required = true;
     Scanner scanner = new Scanner(System.in);
-    // Solicita o nome do arquivo.
-    System.out.print("Informe o nome do arquivo: ");
-    // Obtém o nome do arquivo informado pelo usuário.
-    String filename = scanner.nextLine();
+    // Solicita e atribui o nome do arquivo.
+    String filename = requestUserEntry("Informe o nome do arquivo: ", required);
 
     try {
       // Recupera o arquivo informado e adiciona o mesmo à lista de fontes.
