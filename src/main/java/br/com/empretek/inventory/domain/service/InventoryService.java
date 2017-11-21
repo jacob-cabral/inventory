@@ -1,9 +1,7 @@
 package br.com.empretek.inventory.domain.service;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -12,47 +10,20 @@ import java.util.Set;
 import br.com.empretek.inventory.domain.Divergence;
 import br.com.empretek.inventory.domain.Inventory;
 import br.com.empretek.inventory.domain.Record;
-import br.com.empretek.inventory.infrastructure.StringUtil;
+import br.com.empretek.inventory.domain.data.DataCollector;
+import br.com.empretek.inventory.domain.data.InvalidDataException;
 
 public class InventoryService {
 
-  private static final int CODE_INDEX = 0;
-  private static final int QUANTITY_INDEX = 1;
-
-  public Inventory inventory(File source) throws IOException {
+  public Inventory inventory(File source) throws FileNotFoundException, InvalidDataException {
     Inventory inventory = new Inventory();
+    DataCollector collector = new DataCollector(source);
 
-    StringUtil util = StringUtil.getInstance();
+    while (collector.hasNext())
+      inventory.add(collector.getNextRecord());
 
-    BufferedReader reader = new BufferedReader(new FileReader(source));
-    String line = null;
-
-    while (util.validateNotNull(line = reader.readLine())) {
-      if (!util.validateNotEmpty(line))
-        continue;
-
-      String[] data = line.trim().split(",");
-      String code = null;
-      String quantity = null;
-
-      if (util.validateNotNull(data) && !Arrays.asList(data).isEmpty()) {
-        code = data[CODE_INDEX];
-
-        if (!util.validateNotNull(code) || !util.validateNotEmpty(code))
-          continue;
-
-        if (Arrays.asList(data).size() > 1)
-          quantity = data[QUANTITY_INDEX];
-
-        if (!util.validateNotNull(quantity) || !util.validateNotEmpty(quantity))
-          quantity = "1";
-
-        inventory.add(new Record(source, Long.parseLong(code), Integer.parseInt(quantity)));
-      }
-    }
-
-    if (reader != null)
-      reader.close();
+    if (collector != null)
+      collector.close();
 
     return inventory;
   }
@@ -62,34 +33,47 @@ public class InventoryService {
   }
 
   public Set<Divergence> compare(Inventory... inventories) {
+    // Instancia o conjunto de divergências.
     Set<Divergence> divergences = new HashSet<>();
 
+    // Verifica a validade do argumento - um conjunto de inventários.
     if (inventories == null || Arrays.asList(inventories).isEmpty())
       throw new IllegalArgumentException("Erro ao comparar os inventários. Os argumentos são inválidos.");
 
+    // Itera sobre os inventários.
     for (int i = 0; i < inventories.length; i++) {
+      // Recupera o inventário na posição "i".
       Inventory inventory = inventories[i];
 
+      // Itera sobre os registros do inventário.
       for (Record record : inventory.getRecords()) {
+        // Instancia um vetor que armazena os registros equivalentes em cada inventário.
         Record[] records = new Record[inventories.length];
 
+        // Itera sobre os inventários em busca dos registros equivalentes ao selecionado na estrutura de repetição acima.
         for (int x = 0; x < inventories.length; x++) {
+          // Verifica se o índice corresponde ao do inventário atual.
           if (i == x) {
+            // Atribui o registro selecionado ao vetor.
             records[x] = record;
             continue;
           }
 
+          // Verifica a existência de um correspondente do registro no inventário armazenado no índice "x".
           boolean contains = checkContains(inventories[x], record);
 
           if (contains)
+            // Atribui o registro correspondente ao vetor. Caso não seja encontrado um registro correspondente, será mantido um valor nulo.
             records[x] = getEqualRecord(inventories[x], record);
         }
 
+        // Verifica se há divergência nas quantidades dos registros adicionados ao vetor.
         if (!hasSameQuantity(records))
           divergences.add(new Divergence(records));
       }
     }
 
+    // Retorna as divergências encontradas.
     return Collections.unmodifiableSet(divergences);
   }
 
