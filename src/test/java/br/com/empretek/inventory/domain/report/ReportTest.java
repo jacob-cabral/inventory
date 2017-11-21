@@ -1,4 +1,4 @@
-package br.com.empretek.inventory.domain;
+package br.com.empretek.inventory.domain.report;
 
 import java.io.File;
 import java.io.IOException;
